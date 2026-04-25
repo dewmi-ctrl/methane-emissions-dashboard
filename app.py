@@ -104,9 +104,10 @@ st.markdown("""
 - The dashboard allows users to compare trends across different years and countries.
 """)
 
-# Data preview
-st.subheader("📊 Data Preview")
-st.dataframe(df)
+# Dataset summary instead of dataframe
+st.subheader("📊 Dataset Summary")
+st.write(f"The cleaned dataset contains **{df.shape[0]} rows** and **{df.shape[1]} columns**.")
+st.write(f"The dataset covers **{df['Country Name'].nunique()} countries** from **{df['Year'].min()} to {df['Year'].max()}**.")
 
 # Footer
 st.markdown("---")
