@@ -18,21 +18,21 @@ df = df[~df["Country Name"].str.contains(
     na=False
 )]
 
-# Dashboard title
+# Title
 st.title("🌍 Global Methane Emissions Dashboard")
-st.markdown("### Data-driven insights on methane emissions across countries")
+st.markdown("#### Interactive analysis using World Bank data (2000–2023)")
 
 st.write(
     "This dashboard analyses methane emissions by country using World Bank data. "
-    "Users can explore country-level trends and compare the highest methane-emitting countries."
+    "Users can explore country-level trends, compare countries, and identify the highest methane-emitting countries."
 )
 
-# KPI Cards
+# KPI cards
 col1, col2, col3 = st.columns(3)
 
-col1.metric("Total Countries", df["Country Name"].nunique())
-col2.metric("Highest Emission", round(df["Methane"].max(), 2))
-col3.metric("Lowest Emission", round(df["Methane"].min(), 2))
+col1.metric("🌍 Total Countries", df["Country Name"].nunique())
+col2.metric("🔥 Highest Emission", round(df["Methane"].max(), 2))
+col3.metric("❄️ Lowest Emission", round(df["Methane"].min(), 2))
 
 # Sidebar filters
 st.sidebar.header("Filters")
@@ -49,14 +49,23 @@ year_range = st.sidebar.slider(
     (int(df["Year"].min()), int(df["Year"].max()))
 )
 
-# Filter data
+# Country comparison filter
+st.sidebar.subheader("Compare Countries")
+
+compare_countries = st.sidebar.multiselect(
+    "Select Countries to Compare",
+    sorted(df["Country Name"].unique()),
+    default=["China", "India", "United States"]
+)
+
+# Filter selected country data
 filtered = df[
     (df["Country Name"] == country) &
     (df["Year"] >= year_range[0]) &
     (df["Year"] <= year_range[1])
 ]
 
-# Line chart
+# Selected country trend
 st.subheader(f"📈 Methane Emissions Trend - {country}")
 
 fig_line = px.line(
@@ -69,6 +78,48 @@ fig_line = px.line(
 )
 
 st.plotly_chart(fig_line, use_container_width=True)
+
+# Global trend
+st.subheader("🌍 Global Methane Emissions Trend")
+
+global_trend = (
+    df[(df["Year"] >= year_range[0]) & (df["Year"] <= year_range[1])]
+    .groupby("Year")["Methane"]
+    .mean()
+    .reset_index()
+)
+
+fig_global = px.line(
+    global_trend,
+    x="Year",
+    y="Methane",
+    markers=True,
+    title="Global Average Methane Emissions Over Time",
+    labels={"Methane": "Average Methane Emissions", "Year": "Year"}
+)
+
+st.plotly_chart(fig_global, use_container_width=True)
+
+# Country comparison
+st.subheader("📊 Country Comparison")
+
+compare_df = df[
+    (df["Country Name"].isin(compare_countries)) &
+    (df["Year"] >= year_range[0]) &
+    (df["Year"] <= year_range[1])
+]
+
+fig_compare = px.line(
+    compare_df,
+    x="Year",
+    y="Methane",
+    color="Country Name",
+    markers=True,
+    title="Comparison of Methane Emissions",
+    labels={"Methane": "Methane Emissions", "Country Name": "Country"}
+)
+
+st.plotly_chart(fig_compare, use_container_width=True)
 
 # Top 10 chart
 st.subheader("🏆 Top 10 Countries by Average Methane Emissions")
@@ -102,9 +153,10 @@ st.markdown("""
 - China, United States, and India are among the highest methane-emitting countries.
 - Methane emissions vary significantly between countries.
 - The dashboard allows users to compare trends across different years and countries.
+- The global trend chart helps identify changes in average methane emissions over time.
 """)
 
-# Dataset summary instead of dataframe
+# Dataset summary
 st.subheader("📊 Dataset Summary")
 st.write(f"The cleaned dataset contains **{df.shape[0]} rows** and **{df.shape[1]} columns**.")
 st.write(f"The dataset covers **{df['Country Name'].nunique()} countries** from **{df['Year'].min()} to {df['Year'].max()}**.")
@@ -112,5 +164,5 @@ st.write(f"The dataset covers **{df['Country Name'].nunique()} countries** from 
 # Footer
 st.markdown("---")
 st.markdown("📌 Data Source: World Bank Open Data")
-st.markdown("👨‍💻 Developed for 5DATA004C Data Science Project Lifecycle Coursework")
-
+st.markdown("📊 Built using Streamlit, Pandas, and Plotly")
+st.markdown("🎓 Developed for 5DATA004C Data Science Project Lifecycle Coursework")
